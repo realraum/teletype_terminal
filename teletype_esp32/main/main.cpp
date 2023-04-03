@@ -8,6 +8,7 @@
 #include <chrono>
 #include <memory>
 #include "esp_timer.h"
+#include "baudot_code.h"
 
 namespace {
     constexpr const char TAG[] = "MAIN";
