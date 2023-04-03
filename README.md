@@ -4,10 +4,17 @@ Using a Siemens T100 Teletype as a linux terminal  __and__ in conjuntion with a 
 
 ## Goals:
 
-- [ ] Run Teletype in local only mode (with current loop through sender contacts and receiver magnet)
-- [ ] Run Teletype in conjuntion with a RTTY modem (in hardware, provided by HAM-Radio operator)
+- [x] Run Teletype in local only mode (with current loop through sender contacts and receiver magnet)
+- [x] Run Teletype in conjuntion with a RTTY modem (in hardware, provided by HAM-Radio operator)
 - [ ] Run Test over actual radio link using provided modem
 - [ ] Connect to a µC for printing incoming serial data (USB) to teletpye
 - [ ] Read data from the teletype to the computer over serial (USB)
 - [ ] Run actual shell over usb-serial to teletype converter
-- [ ] Choose / modify / write software for easy use with teletype under linx
+- [ ] Choose / modify / write software for easy use with teletype under linux
+
+
+## Ideas for software to run on the terminal
+
+* IRC client that only prints minimal output
+* TIC-TAC-TOE game
+* ChatGPT 
