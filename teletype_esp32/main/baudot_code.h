@@ -2,16 +2,18 @@
 #define BAUDOT_CODE_H
 #include <inttypes.h>
 char UNDEFINED_CHAR = 0xFF;
+uint8_t SWITCH_LETTER = 0b11111;
+uint8_t SWITCH_NUMBER = 0b11011;
 
 struct character
 {
     uint8_t bitcode;
-    char mode_character;
+    char mode_letter;
     char mode_number;
 };
 
-static character test[] =
-    {
+static character baudot_alphabet[] =
+{
     {0b00011, 'A', '-'},
     {0b11001, 'B', '?'},
     {0b01110, 'C', ':'},
@@ -42,6 +44,11 @@ static character test[] =
     {0b00010, '\n', '\n'},
     {0b00100, ' ', ' '},
     {0b00000, 0x0, 0x0}
+};
+
+static char replacements[1][2]
+{
+    {'\"', '\''}
 };
 
 #endif // BAUDOT_CODE_H
