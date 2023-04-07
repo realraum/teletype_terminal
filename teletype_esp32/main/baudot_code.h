@@ -1,9 +1,13 @@
 #ifndef BAUDOT_CODE_H
 #define BAUDOT_CODE_H
 #include <inttypes.h>
-char UNDEFINED_CHAR = 0xFF;
-uint8_t SWITCH_LETTER = 0b11111;
-uint8_t SWITCH_NUMBER = 0b11011;
+
+#define NUMBER_OF_BITS 5
+
+#define UNDEFINED_CHAR 0xFF
+#define SWITCH_LETTER 0b11111
+#define SWITCH_NUMBER 0b11011
+
 
 struct character
 {
