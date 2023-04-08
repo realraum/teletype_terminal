@@ -10,6 +10,7 @@
 #include "esp_timer.h"
 
 #include "driver/gpio.h"
+#include <string>
 
 #include "baudot_code.h"
 #include "teletype.hpp"
@@ -32,6 +33,7 @@ extern "C" void app_main(void)
     Teletype tty;
     tty.init();
 
+    /*
     for(int i = 3; i >0;i--)
     {
         printf("R\n");
@@ -40,14 +42,19 @@ extern "C" void app_main(void)
         printf("Y\n");
         tty.tx_bits(bits_Y);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    }*/
 
-    // Just a simple test to check if we can get bits in the correct order / speed
+    std::string my_string = "hello hello hello hello hello hello hello hello \n";
 
-    for (int i = 2; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    tty.print_string(my_string);
+    /*tty.tx_bits(0b10100); // H
+    tty.tx_bits(0b00001); // E
+    tty.tx_bits(0b10010); // L
+    tty.tx_bits(0b10010); // L
+    tty.tx_bits(0b11000); // O*/
+
+    
+
     printf("Restarting now.\n");
     fflush(stdout);
     esp_restart();

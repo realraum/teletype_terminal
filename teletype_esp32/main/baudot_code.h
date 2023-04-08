@@ -3,7 +3,7 @@
 #include <inttypes.h>
 
 #define NUMBER_OF_BITS 5
-
+#define NUMBER_OF_BAUDOT_CHARS 30
 #define UNDEFINED_CHAR 0xFF
 #define SWITCH_LETTER 0b11111
 #define SWITCH_NUMBER 0b11011
