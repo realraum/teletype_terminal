@@ -86,7 +86,6 @@ void Teletype::print_character(print_baudot_char bd_char)
 void Teletype::print_string(std::string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-    str.append("\r"); //TODO: only append \r when there's a \n and ONLY a \n at the end of a line (Linux stuff)
     ESP_LOGI(TAG, "%s", str.c_str());
 
     std::list<print_baudot_char> bd_char_list;
@@ -94,10 +93,27 @@ void Teletype::print_string(std::string str)
     for(auto it = str.begin(); it != str.end(); it++)
     {
         char c = *it;
-        bd_char_list.push_back(this->convert_ascii_character_to_baudot(c));
+        //TODO: decide if we REALLY want to change the contents of the string THAT MUCH
+        if(c == '\n')
+        {
+            // change \n to CR + LF
+            bd_char_list.push_back(this->convert_ascii_character_to_baudot('\r'));
+            bd_char_list.push_back(this->convert_ascii_character_to_baudot('\n'));
+            if(*(it+1) == '\r')it++; // if string contains \n\r the \r needs to be discarded -> swap to \r\n
+        }
+        else if (c == '\r' && *(it+1) != '\n')
+        {
+            // change \r to CR + LF
+            bd_char_list.push_back(this->convert_ascii_character_to_baudot('\r'));
+            bd_char_list.push_back(this->convert_ascii_character_to_baudot('\n'));
+        }
+        else
+        {
+            // normal character or direct
+            bd_char_list.push_back(this->convert_ascii_character_to_baudot(c));
+        }
     }
 
-    //TODO: change this to a print character function (we want to be able to place individual chars)
     for(auto it = bd_char_list.begin(); it != bd_char_list.end(); it++)
     {
         this->print_character(*it);
@@ -168,4 +184,23 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
     }
 
     return ret;
+}
+
+void Teletype::print_all_characters()
+{
+    print_baudot_char bd_char;
+    for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS; i++)
+    {
+        bd_char.bitcode = baudot_alphabet[i].bitcode;
+        bd_char.mode = MODE_LETTER;
+        this->print_character(bd_char);
+        vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
+    }
+    for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS; i++)
+    {
+        bd_char.bitcode = baudot_alphabet[i].bitcode;
+        bd_char.mode = MODE_NUMBER;
+        this->print_character(bd_char);
+        vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
+    }
 }

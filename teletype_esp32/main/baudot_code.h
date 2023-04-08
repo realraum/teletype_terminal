@@ -27,7 +27,7 @@ static character baudot_alphabet[] =
     {0b11010, 'G', UNDEFINED_CHAR},
     {0b10100, 'H', UNDEFINED_CHAR},
     {0b00110, 'I', '8'},
-    {0b01011, 'J', 0x07}, // 0x07 = BELL
+    {0b01011, 'J', 0x07}, // 0x07 = BELL, POSIX: '\a'
     {0b01111, 'K', '('},
     {0b10010, 'L', ')'},
     {0b11100, 'M', '.'},

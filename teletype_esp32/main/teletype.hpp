@@ -32,6 +32,8 @@ public:
     print_baudot_char convert_ascii_character_to_baudot(char c);
     char convert_baudot_char_to_ascii(uint8_t bits);
 
+    void print_all_characters();
+
 private:
     tty_mode mode;
 
