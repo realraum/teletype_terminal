@@ -13,12 +13,15 @@
 
 #include "teletype.hpp"
 
+namespace {
+    constexpr const char TAG[] = "TTY";
+}
 
 
 void Teletype::init()
 {
     gpio_set_direction(TTY_TX_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(TTY_TX_PIN, TELETYPE_LOGIC_1);
+    gpio_set_level(TTY_TX_PIN, 1);
     this->mode = MODE_UNKNOWN;
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
     this->set_letter();
@@ -27,43 +30,64 @@ void Teletype::init()
 
 void Teletype::set_number()
 {
-    this->tx_bits(SWITCH_NUMBER);
-    this->mode = MODE_NUMBER;
+    this->set_mode(MODE_NUMBER);
 }
 
 void Teletype::set_letter()
 {
-    this->tx_bits(SWITCH_LETTER);
-    this->mode = MODE_LETTER;
+    this->set_mode(MODE_LETTER);
+}
+
+void Teletype::set_mode(tty_mode mode)
+{
+    if(mode == MODE_LETTER)
+    {
+        this->tx_bits(SWITCH_LETTER);
+        this->mode = MODE_LETTER;
+    }
+    else if (mode == MODE_NUMBER)
+    {
+        this->tx_bits(SWITCH_NUMBER);
+        this->mode = MODE_NUMBER;
+    }
 }
 
 void Teletype::tx_bits(uint8_t bits)
 {
-    printf("pattern: %x\n", bits);
+    //printf("pattern: %x\n", bits);
     bool tx_bit = 0b0;
 
     // startbit
-    gpio_set_level(TTY_TX_PIN, TELETYPE_LOGIC_0);
+    gpio_set_level(TTY_TX_PIN, 0);
     vTaskDelay(DELAY_BIT / portTICK_PERIOD_MS);
 
-    for(int i = NUMBER_OF_BITS - 1; i>=0;i--)
+    for(int i = 0; i<NUMBER_OF_BITS;i++)
     {
         tx_bit = (bits & (1 << i));
-        printf("%d\n", tx_bit);
-        gpio_set_level(TTY_TX_PIN, tx_bit & TELETYPE_LOGIC_1);
+        //printf("%d\n", tx_bit);
+        gpio_set_level(TTY_TX_PIN, tx_bit);
         vTaskDelay(DELAY_BIT / portTICK_PERIOD_MS);
     }
 
     // Stopbit
-    gpio_set_level(TTY_TX_PIN, TELETYPE_LOGIC_1);
+    gpio_set_level(TTY_TX_PIN, 1);
     vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
+}
+
+void Teletype::print_character(print_baudot_char bd_char)
+{
+    if(this->mode != MODE_BOTH_POSSIBLE && this->mode != bd_char.mode)
+    {
+        this->set_mode(bd_char.mode);
+    }
+    this->tx_bits(bd_char.bitcode);
 }
 
 void Teletype::print_string(std::string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
     str.append("\r"); //TODO: only append \r when there's a \n and ONLY a \n at the end of a line (Linux stuff)
-    printf("%s\n", str.c_str());
+    ESP_LOGI(TAG, "%s", str.c_str());
 
     std::list<print_baudot_char> bd_char_list;
 
@@ -76,17 +100,17 @@ void Teletype::print_string(std::string str)
     //TODO: change this to a print character function (we want to be able to place individual chars)
     for(auto it = bd_char_list.begin(); it != bd_char_list.end(); it++)
     {
-        printf("%x %d %c\n", it->bitcode, it->mode, this->convert_baudot_char_to_ascii(it->bitcode));
-        this->tx_bits(it->bitcode);
+        this->print_character(*it);
+        ESP_LOGI(TAG, "%x %d %c", it->bitcode, it->mode, this->convert_baudot_char_to_ascii(it->bitcode));
     }
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-
 }
 
 
 print_baudot_char Teletype::convert_ascii_character_to_baudot(char c)
 {
     print_baudot_char bd_char;
+    bd_char.bitcode = 0b0;
+    bd_char.mode = MODE_UNKNOWN;
     bool found = false;
     for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
     {
@@ -96,16 +120,25 @@ print_baudot_char Teletype::convert_ascii_character_to_baudot(char c)
             bd_char.mode = MODE_LETTER;
             found = true;
         }
-        else if (baudot_alphabet[i].mode_number == c)
+        if(baudot_alphabet[i].mode_number == c)
         {
             bd_char.bitcode = baudot_alphabet[i].bitcode;
-            bd_char.mode = MODE_NUMBER;
+            // if character is printable in both modes select the "both_modes" flag
+            // --> space, newline, carriage return, NUL
+            if(bd_char.mode != MODE_UNKNOWN)
+            {
+                bd_char.mode = MODE_BOTH_POSSIBLE;
+            }
+            else
+            {
+                bd_char.mode = MODE_NUMBER;
+            }
             found = true;
         }
     }
     if(!found)
     {
-        printf("ERROR: letter not found in alphabet, printing space\n");
+        ESP_LOGI(TAG, "ERROR: letter not found in alphabet, printing space");
         bd_char = this->convert_ascii_character_to_baudot(' '); // TODO: avoid unneccesary mode change when printing space
     }
     return bd_char;
@@ -129,7 +162,7 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
             }
             else
             {
-                printf("ERROR: state unknown, returning 0");
+                ESP_LOGI(TAG, "ERROR: state unknown, returning 0");
             }
         }
     }

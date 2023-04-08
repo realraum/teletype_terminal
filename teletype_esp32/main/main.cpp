@@ -19,43 +19,25 @@ namespace {
     constexpr const char TAG[] = "MAIN";
 }
 
-uint8_t bits_R = 0b01010;
-uint8_t bits_Y = 0b10101;
-
-
 
 extern "C" void app_main(void)
 {
     ESP_LOGI(TAG, "ESP32 Teletype Debug");
 
-    printf("Hello world\n\n");
-
     Teletype tty;
     tty.init();
 
-    /*
-    for(int i = 3; i >0;i--)
+    std::string my_string = "the quick brown fox jumps over the lazy dog 1234567890\n";
+
+    char* buf;
+    while(1)
     {
-        printf("R\n");
-        tty.tx_bits(bits_R);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        printf("Y\n");
-        tty.tx_bits(bits_Y);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }*/
+        tty.print_string(my_string);
+        vTaskDelay(3000 / portTICK_PERIOD_MS);
+        //getLineInput(buf, 10);
+    }
 
-    std::string my_string = "hello hello hello hello hello hello hello hello \n";
-
-    tty.print_string(my_string);
-    /*tty.tx_bits(0b10100); // H
-    tty.tx_bits(0b00001); // E
-    tty.tx_bits(0b10010); // L
-    tty.tx_bits(0b10010); // L
-    tty.tx_bits(0b11000); // O*/
-
-    
-
-    printf("Restarting now.\n");
+    ESP_LOGI(TAG, "Restarting now. ==================================================================\n");
     fflush(stdout);
     esp_restart();
 }
