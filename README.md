@@ -1,6 +1,6 @@
 # teletype_terminal
 
-Using a Siemens T100 Teletype as a linux terminal  __and__ in conjuntion with a RTTY modem for HAM-Radio operatoin on [GLT2023](https://www.linuxtage.at/de/)
+Using a Siemens T100 Teletype as a linux terminal  __and__ in conjuntion with a RTTY modem for HAM-Radio operatoin on [GLT2023](https://www.linuxtage.at/de/).
 
 ## Goals:
 
