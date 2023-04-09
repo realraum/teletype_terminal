@@ -22,6 +22,10 @@ Teletype::Teletype()
     esp_log_level_set(TAG, ESP_LOG_WARN);
     gpio_set_direction(TTY_RX_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(TTY_RX_PIN, 1);
+<<<<<<< HEAD
+=======
+    kb_mode = MODE_UNKNOWN;
+>>>>>>> ef2580a (fixed mode)
     pr_mode = MODE_UNKNOWN;
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
     this->set_letter();
@@ -191,17 +195,16 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
         {
             if (baudot_alphabet[i].bitcode == bits)
             {
-                if(kb_mode == MODE_LETTER)
+                switch(kb_mode)
                 {
+                case MODE_LETTER:
                     ret = baudot_alphabet[i].mode_letter;
-                }
-                else if (kb_mode == MODE_NUMBER)
-                {
+                    break;
+                case MODE_NUMBER:
                     ret = baudot_alphabet[i].mode_number;
-                }
-                else
-                {
-                    ESP_LOGI(TAG, "ERROR: state unknown, returning 0");
+                    break;
+                default:
+                    ESP_LOGI(TAG, "ERROR: state unknown, returning 0"); 
                 }
             }
         }
