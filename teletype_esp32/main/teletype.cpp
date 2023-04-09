@@ -179,8 +179,7 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
 {
     bool found{false};
 
-    char ret{0}
-;
+    char ret{0};
     // TODO: Remove this hack if we ever loopback locally
     if (bits == 0b11111)
         kb_mode = MODE_LETTER;
