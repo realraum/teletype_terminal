@@ -20,6 +20,7 @@ namespace {
 
 void Teletype::init()
 {
+    esp_log_level_set(TAG, ESP_LOG_WARN);
     gpio_set_direction(TTY_TX_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(TTY_TX_PIN, 1);
     this->mode = MODE_UNKNOWN;
@@ -54,24 +55,24 @@ void Teletype::set_mode(tty_mode mode)
 
 void Teletype::tx_bits(uint8_t bits)
 {
-    //printf("pattern: %x\n", bits);
+    ESP_LOGI(TAG, "pattern: %x\n", bits);
     bool tx_bit = 0b0;
 
     // startbit
     gpio_set_level(TTY_TX_PIN, 0);
-    vTaskDelay(DELAY_BIT / portTICK_PERIOD_MS);
+    usleep(DELAY_BIT*1000);
 
     for(int i = 0; i<NUMBER_OF_BITS;i++)
     {
         tx_bit = (bits & (1 << i));
         //printf("%d\n", tx_bit);
         gpio_set_level(TTY_TX_PIN, tx_bit);
-        vTaskDelay(DELAY_BIT / portTICK_PERIOD_MS);
+        usleep(DELAY_BIT*1000);
     }
 
     // Stopbit
     gpio_set_level(TTY_TX_PIN, 1);
-    vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
+    usleep(DELAY_STOPBIT*1000);
 }
 
 void Teletype::print_character(print_baudot_char bd_char)
@@ -124,10 +125,12 @@ void Teletype::print_string(std::string str)
 
 print_baudot_char Teletype::convert_ascii_character_to_baudot(char c)
 {
+    c = toupper(c);
     print_baudot_char bd_char;
     bd_char.bitcode = 0b0;
     bd_char.mode = MODE_UNKNOWN;
     bool found = false;
+    ESP_LOGI(TAG, "CHAR = '%c'", c);
     for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
     {
         if(baudot_alphabet[i].mode_letter == c)
@@ -135,6 +138,7 @@ print_baudot_char Teletype::convert_ascii_character_to_baudot(char c)
             bd_char.bitcode = baudot_alphabet[i].bitcode;
             bd_char.mode = MODE_LETTER;
             found = true;
+            ESP_LOGI(TAG, "LETTER %c", baudot_alphabet[i].mode_letter);
         }
         if(baudot_alphabet[i].mode_number == c)
         {
@@ -150,13 +154,16 @@ print_baudot_char Teletype::convert_ascii_character_to_baudot(char c)
                 bd_char.mode = MODE_NUMBER;
             }
             found = true;
+            ESP_LOGI(TAG, "NUMBER %c", baudot_alphabet[i].mode_number);
         }
     }
     if(!found)
     {
-        ESP_LOGI(TAG, "ERROR: letter not found in alphabet, printing space");
-        bd_char = this->convert_ascii_character_to_baudot(' '); // TODO: avoid unneccesary mode change when printing space
+        ESP_LOGW(TAG, "ERROR: letter not found in alphabet, printing space");
+        // bd_char = this->convert_ascii_character_to_baudot(' '); // TODO: avoid unneccesary mode change when printing space
+        bd_char.mode = MODE_BOTH_POSSIBLE;
     }
+    ESP_LOGI(TAG, "BITCODE = '%x'", bd_char.bitcode);
     return bd_char;
 }
 
