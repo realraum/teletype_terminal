@@ -22,10 +22,8 @@ Teletype::Teletype()
     esp_log_level_set(TAG, ESP_LOG_WARN);
     gpio_set_direction(TTY_RX_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(TTY_RX_PIN, 1);
-<<<<<<< HEAD
-=======
+
     kb_mode = MODE_UNKNOWN;
->>>>>>> ef2580a (fixed mode)
     pr_mode = MODE_UNKNOWN;
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
     this->set_letter();
