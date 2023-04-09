@@ -173,20 +173,20 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
     char ret = 0;
     // TODO: Remove this hack if we ever loopback locally
     if(bits == 0b11111)
-        set_mode(MODE_LETTER);
+        this->kb_mode = MODE_LETTER;
     else if(bits == 0b11011)
-        set_mode(MODE_NUMBER);
+        this->kb_mode = MODE_NUMBER;
     else
     {
         for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
         {
             if(baudot_alphabet[i].bitcode == bits)
             {
-                if(this->mode == MODE_LETTER)
+                if(this->kb_mode == MODE_LETTER)
                 {
                     ret = baudot_alphabet[i].mode_letter;
                 }
-                else if (this->mode == MODE_NUMBER)
+                else if (this->kb_mode == MODE_NUMBER)
                 {
                     ret = baudot_alphabet[i].mode_number;
                 }

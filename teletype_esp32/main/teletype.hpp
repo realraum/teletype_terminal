@@ -36,6 +36,7 @@ public:
     void print_all_characters();
 
 private:
+    tty_mode kb_mode;
     tty_mode mode;
 
     void set_number();
