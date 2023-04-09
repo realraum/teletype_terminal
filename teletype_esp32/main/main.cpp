@@ -34,7 +34,7 @@ Teletype global_tty;
         if (ret > 0)
         {
             //putc(buf[0], stdout);
-            print_baudot_char bd_char = tty->convert_ascii_character_to_baudot(buf[0]);
+            print_baudot_char_t bd_char = tty->convert_ascii_character_to_baudot(buf[0]);
             tty->print_character(bd_char);
             if(buf[0] == '\n')
                 tty->print_character(tty->convert_ascii_character_to_baudot('\r'));
@@ -42,13 +42,13 @@ Teletype global_tty;
     }
 }
 
-void uart_task_tx( void * pvParameters )
+void uart_task_tx(void *pvParameters)
 {
-    auto tty = std::unique_ptr<Teletype>{(Teletype*)pvParameters};
+    auto tty = std::unique_ptr<Teletype>{static_cast<Teletype*>(pvParameters)};
     ESP_LOGI(TAG, "Hello from the UART TX Task");
-    TickType_t xLastWakeTime = xTaskGetTickCount ();
-    xTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(10)); // Wait till we are in the middle of Startbit
-    if(gpio_get_level(TTY_TX_PIN) == 1)
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10)); // Wait till we are in the middle of Startbit
+    if (gpio_get_level(TTY_TX_PIN) == 1)
     {
         uint8_t result = 0;
         for(int i = 0; i<5; i++)
