@@ -171,10 +171,11 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
 {
     bool found = false;
     char ret = 0;
+    // TODO: Remove this hack if we ever loopback locally
     if(bits == 0b11111)
-        this->mode = MODE_LETTER;
+        set_mode(MODE_LETTER);
     else if(bits == 0b11011)
-        this->mode = MODE_NUMBER;
+        set_mode(MODE_NUMBER);
     else
     {
         for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
@@ -196,7 +197,6 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
             }
         }
     }
-
     return ret;
 }
 

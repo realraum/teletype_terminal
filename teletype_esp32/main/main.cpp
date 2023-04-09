@@ -58,7 +58,8 @@ void uart_task_tx( void * pvParameters )
         }
         xTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(30));
         char out[] = {(char)tolower(tty->convert_baudot_char_to_ascii(result))};
-        uart_write_bytes(UART_NUM_1, &out, 1);
+        if(out[0] != 0)
+            uart_write_bytes(UART_NUM_1, &out, 1);
     }
     else
         ESP_LOGW(TAG, "ERROR! Start bit not 0! False trigger?");
