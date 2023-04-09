@@ -21,8 +21,8 @@ namespace {
 void Teletype::init()
 {
     esp_log_level_set(TAG, ESP_LOG_WARN);
-    gpio_set_direction(TTY_TX_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(TTY_TX_PIN, 1);
+    gpio_set_direction(TTY_RX_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_level(TTY_RX_PIN, 1);
     this->mode = MODE_UNKNOWN;
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
     this->set_letter();
@@ -59,19 +59,19 @@ void Teletype::tx_bits(uint8_t bits)
     bool tx_bit = 0b0;
 
     // startbit
-    gpio_set_level(TTY_TX_PIN, 0);
+    gpio_set_level(TTY_RX_PIN, 0);
     usleep(DELAY_BIT*1000);
 
     for(int i = 0; i<NUMBER_OF_BITS;i++)
     {
         tx_bit = (bits & (1 << i));
         //printf("%d\n", tx_bit);
-        gpio_set_level(TTY_TX_PIN, tx_bit);
+        gpio_set_level(TTY_RX_PIN, tx_bit);
         usleep(DELAY_BIT*1000);
     }
 
     // Stopbit
-    gpio_set_level(TTY_TX_PIN, 1);
+    gpio_set_level(TTY_RX_PIN, 1);
     usleep(DELAY_STOPBIT*1000);
 }
 
@@ -171,21 +171,28 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
 {
     bool found = false;
     char ret = 0;
-    for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
+    if(bits == 0b11111)
+        this->mode = MODE_LETTER;
+    else if(bits == 0b11011)
+        this->mode = MODE_NUMBER;
+    else
     {
-        if(baudot_alphabet[i].bitcode == bits)
+        for(int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
         {
-            if(this->mode == MODE_LETTER)
+            if(baudot_alphabet[i].bitcode == bits)
             {
-                ret = baudot_alphabet[i].mode_letter;
-            }
-            else if (this->mode == MODE_NUMBER)
-            {
-                ret = baudot_alphabet[i].mode_number;
-            }
-            else
-            {
-                ESP_LOGI(TAG, "ERROR: state unknown, returning 0");
+                if(this->mode == MODE_LETTER)
+                {
+                    ret = baudot_alphabet[i].mode_letter;
+                }
+                else if (this->mode == MODE_NUMBER)
+                {
+                    ret = baudot_alphabet[i].mode_number;
+                }
+                else
+                {
+                    ESP_LOGI(TAG, "ERROR: state unknown, returning 0");
+                }
             }
         }
     }
