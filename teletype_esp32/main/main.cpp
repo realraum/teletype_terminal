@@ -33,10 +33,9 @@ Teletype* global_tty;
         if (ret > 0)
         {
             //putc(buf[0], stdout);
-            print_baudot_char_t bd_char = global_tty->convert_ascii_character_to_baudot(buf[0]);
-            global_tty->print_character(bd_char);
+            global_tty->print_ascii_character(buf[0]);
             if(buf[0] == '\n')
-                global_tty->print_character(global_tty->convert_ascii_character_to_baudot('\r'));
+                global_tty->print_ascii_character('\r');
         }
     }
 }
@@ -45,9 +44,7 @@ void uart_task_tx(void *pvParameters)
 {
     ESP_LOGI(TAG, "Hello from the UART TX Task");
 
-    uint8_t bits = global_tty->rx_bits();
-
-    char out[] = {static_cast<char>(tolower(global_tty->convert_baudot_char_to_ascii(bits)))};
+    char out[] = {global_tty->receive_ascii_character()};
     if (out[0] != 0)
     {
         uart_write_bytes(UART_NUM_1, &out, 1);

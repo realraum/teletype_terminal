@@ -26,13 +26,17 @@ Teletype::Teletype()
     kb_mode = MODE_UNKNOWN;
     pr_mode = MODE_UNKNOWN;
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
-    this->set_letter();
+    set_letter();
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
+    // initialize with CR + LF
+    print_ascii_character('\r');
+    print_ascii_character('\n');
+    characters_on_paper = 0;
 }
 
 void Teletype::set_number()
 {
-    this->set_mode(MODE_NUMBER);
+    set_mode(MODE_NUMBER);
 }
 
 void Teletype::set_letter()
@@ -99,7 +103,12 @@ uint8_t Teletype::rx_bits()
     return result;
 }
 
-void Teletype::print_character(print_baudot_char_t bd_char)
+void Teletype::print_ascii_character(char c)
+{
+    print_bd_character(convert_ascii_character_to_baudot(c)); // TODO: error checking (need to decide how)
+}
+
+void Teletype::print_bd_character(print_baudot_char_t bd_char)
 {
     if (pr_mode != MODE_BOTH_POSSIBLE && pr_mode != bd_char.mode)
     {
@@ -142,7 +151,7 @@ void Teletype::print_string(std::string str)
 
     for (auto it = bd_char_list.begin(); it != bd_char_list.end(); it++)
     {
-        print_character(*it);
+        print_bd_character(*it);
         ESP_LOGI(TAG, "%x %d %c", it->bitcode, it->mode, convert_baudot_char_to_ascii(it->bitcode));
     }
 }
@@ -232,6 +241,15 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
     return ret;
 }
 
+
+char Teletype::receive_ascii_character()
+{
+    uint8_t bits = rx_bits();
+    char ret = static_cast<char>(tolower(convert_baudot_char_to_ascii(bits))); // TODO: erro checking (need to decide how)
+
+    return ret;
+}
+
 void Teletype::print_all_characters()
 {
     print_baudot_char_t bd_char;
@@ -240,7 +258,7 @@ void Teletype::print_all_characters()
     {
         bd_char.bitcode = i.bitcode;
         bd_char.mode = MODE_LETTER;
-        print_character(bd_char);
+        print_bd_character(bd_char);
         vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
     }
 
@@ -248,7 +266,7 @@ void Teletype::print_all_characters()
     {
         bd_char.bitcode = i.bitcode;
         bd_char.mode = MODE_NUMBER;
-        print_character(bd_char);
+        print_bd_character(bd_char);
         vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
     }
 }

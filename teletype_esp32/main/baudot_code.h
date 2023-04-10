@@ -16,40 +16,41 @@ struct character
     uint8_t bitcode;
     char mode_letter;
     char mode_number;
+    bool increment_line_cnt;
 };
 
 static character baudot_alphabet[] =
 {
-    { 0b00011, 'A', '-' },
-    { 0b11001, 'B', '?' },
-    { 0b01110, 'C', ':' },
-    { 0b01001, 'D', UNDEFINED_CHAR },
-    { 0b00001, 'E', '3' },
-    { 0b01101, 'F', UNDEFINED_CHAR },
-    { 0b11010, 'G', UNDEFINED_CHAR },
-    { 0b10100, 'H', UNDEFINED_CHAR },
-    { 0b00110, 'I', '8' },
-    { 0b01011, 'J', 0x07 }, // 0x07 = BELL, POSIX: '\a'
-    { 0b01111, 'K', '(' },
-    { 0b10010, 'L', ')' },
-    { 0b11100, 'M', '.' },
-    { 0b01100, 'N', ',' },
-    { 0b11000, 'O', '9' },
-    { 0b10110, 'P', '0' },
-    { 0b10111, 'Q', '1' },
-    { 0b01010, 'R', '4' },
-    { 0b00101, 'S', '\'' },
-    { 0b10000, 'T', '5' },
-    { 0b00111, 'U', '7' },
-    { 0b11110, 'V', '=' },
-    { 0b10011, 'W', '2' },
-    { 0b11101, 'X', '/' },
-    { 0b10101, 'Y', '6' },
-    { 0b10001, 'Z', '+' },
-    { 0b01000, '\r', '\r' },
-    { 0b00010, '\n', '\n' },
-    { 0b00100, ' ', ' ' },
-    { 0b00000, 0x0, 0x0 }
+    { 0b00011, 'A', '-', true },
+    { 0b11001, 'B', '?', true },
+    { 0b01110, 'C', ':', true },
+    { 0b01001, 'D', UNDEFINED_CHAR, true }, // DO NOT PRINT THIS CHARACTER IN NUMBER MODE (triggers identification)
+    { 0b00001, 'E', '3', true },
+    { 0b01101, 'F', UNDEFINED_CHAR, true },
+    { 0b11010, 'G', UNDEFINED_CHAR, true },
+    { 0b10100, 'H', UNDEFINED_CHAR, true },
+    { 0b00110, 'I', '8', true },
+    { 0b01011, 'J', 0x07, true }, // 0x07 = BELL, POSIX: '\a'
+    { 0b01111, 'K', '(', true },
+    { 0b10010, 'L', ')', true },
+    { 0b11100, 'M', '.', true },
+    { 0b01100, 'N', ',', true },
+    { 0b11000, 'O', '9', true },
+    { 0b10110, 'P', '0', true },
+    { 0b10111, 'Q', '1', true },
+    { 0b01010, 'R', '4', true },
+    { 0b00101, 'S', '\'', true },
+    { 0b10000, 'T', '5', true },
+    { 0b00111, 'U', '7', true },
+    { 0b11110, 'V', '=', true },
+    { 0b10011, 'W', '2', true },
+    { 0b11101, 'X', '/', true },
+    { 0b10101, 'Y', '6', true },
+    { 0b10001, 'Z', '+', true },
+    { 0b01000, '\r', '\r', false },
+    { 0b00010, '\n', '\n', false },
+    { 0b00100, ' ', ' ', true },
+    { 0b00000, 0x0, 0x0, false }
 };
 
 static constexpr char replacements[][2]

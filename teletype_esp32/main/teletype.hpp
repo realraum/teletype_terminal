@@ -26,10 +26,14 @@ typedef enum {
     MODE_BOTH_POSSIBLE
 } tty_mode_t;
 
+
+// TODO: unify print_baudot_char_t and character from baudot_code.h
+//       to one datatype that can be used in both places (alphabet and printing / de-/encoding)
 typedef struct
 {
     uint8_t bitcode;
     tty_mode_t mode;
+    bool increment_line_cnt;
 } print_baudot_char_t;
 
 class Teletype
@@ -38,23 +42,27 @@ public:
     Teletype();
 
     void print_string(std::string str);
+    void print_ascii_character(char c);
+    void print_all_characters(); // for later use when we want to test the alphabet (print everything)
 
-    static uint8_t rx_bits();
-    static void tx_bits(uint8_t bits);
+    char receive_ascii_character();
+
     static print_baudot_char_t convert_ascii_character_to_baudot(char c);
-
-    void print_character(print_baudot_char_t bd_char);
     char convert_baudot_char_to_ascii(uint8_t bits);
-
-    void print_all_characters();
 
 private:
     tty_mode_t kb_mode{}; // keyboard mode
     tty_mode_t pr_mode{}; // printer mode
+    uint8_t characters_on_paper{};
+
+    static uint8_t rx_bits();
+    static void tx_bits(uint8_t bits);
 
     void set_number();
     void set_letter();
     void set_mode(tty_mode_t mode);
+
+    void print_bd_character(print_baudot_char_t bd_char);
 };
 
 #endif
