@@ -20,7 +20,7 @@
 
 namespace {
 constexpr const char TAG[] = "MAIN";
-Teletype global_tty;
+Teletype* global_tty;
 } // namespace
 
 [[noreturn]] void uart_task_rx(void *pvParameters)
@@ -101,10 +101,11 @@ extern "C" [[noreturn]] void app_main(void)
 
     gpio_config(&io_conf);
     gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1);
-    gpio_isr_handler_add(TTY_TX_PIN, data_isr_handler, &global_tty);
+    global_tty = new Teletype();
+    gpio_isr_handler_add(TTY_TX_PIN, data_isr_handler, global_tty);
 
     // --- Start UART task ---
-    xTaskCreate(uart_task_rx, "UART Task RX", 4096, &global_tty, 1, nullptr);
+    xTaskCreate(uart_task_rx, "UART Task RX", 4096, global_tty, 1, nullptr);
 
     // std::string my_string = "the quick brown fox jumps over the lazy dog 1234567890\n-?:().,\'=/+\a\n";
 
