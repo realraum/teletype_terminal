@@ -11,10 +11,12 @@
 // local includes
 #include "baudot_code.h"
 
+// Teletype proteries (timing etc.)
 constexpr const int TTY_BAUDRATE = 50;
 constexpr const int DELAY_BIT = (1000 / TTY_BAUDRATE);
 constexpr const int DELAY_STOPBIT = (DELAY_BIT * 1.5);
-
+constexpr const int TTY_MAX_CHARS_PAPER = 70; // TODO: check this on the machine
+// Hardware connections
 constexpr const auto TTY_RX_PIN{gpio_num_t::GPIO_NUM_22};
 constexpr const auto TTY_TX_PIN{gpio_num_t::GPIO_NUM_23};
 
@@ -33,7 +35,7 @@ typedef struct
 {
     uint8_t bitcode;
     tty_mode_t mode;
-    bool increment_line_cnt;
+    char_count_action_t cc_action;
 } print_baudot_char_t;
 
 class Teletype

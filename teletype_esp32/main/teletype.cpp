@@ -115,6 +115,21 @@ void Teletype::print_bd_character(print_baudot_char_t bd_char)
         set_mode(bd_char.mode);
     }
     tx_bits(bd_char.bitcode);
+    switch (bd_char.cc_action == INCREMENT_CHAR_COUNT)
+    {
+        case INCREMENT_CHAR_COUNT:
+        characters_on_paper++;
+        if (characters_on_paper > TTY_MAX_CHARS_PAPER)
+        {
+            ESP_LOGE(TAG, "ERROR: maximum characters on paper exceeded");
+        }
+            break;
+        case RESET_CHAR_COUNT:
+        characters_on_paper = 0;
+            break;
+        default:
+            break;
+    }
 }
 
 void Teletype::print_string(std::string str)
@@ -179,7 +194,7 @@ print_baudot_char_t Teletype::convert_ascii_character_to_baudot(char c)
             ESP_LOGI(TAG, "LETTER %c", baudot_alphabet[i].mode_letter);
         }
 
-        if(baudot_alphabet[i].mode_number == c)
+        if (baudot_alphabet[i].mode_number == c)
         {
             bd_char.bitcode = baudot_alphabet[i].bitcode;
             // if character is printable in both modes select the "both_modes" flag
@@ -194,6 +209,10 @@ print_baudot_char_t Teletype::convert_ascii_character_to_baudot(char c)
             }
             found = true;
             ESP_LOGI(TAG, "NUMBER %c", baudot_alphabet[i].mode_number);
+        }
+        if (found)
+        {
+            bd_char.cc_action = baudot_alphabet[i].cc_action;
         }
     }
 
