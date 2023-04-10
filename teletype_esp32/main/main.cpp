@@ -23,12 +23,21 @@ constexpr const char TAG[] = "MAIN";
 Teletype* global_tty;
 } // namespace
 
+// TODO: only for testing remove later
+bool flush_buffer;
+
 [[noreturn]] void uart_task_rx(void *pvParameters)
 {
     ESP_LOGI(TAG, "Hello from the UART RX Task");
     char buf[1];
     while (true)
     {
+        if (flush_buffer)
+        {
+            ESP_LOGW(TAG, "FLUSHING RX BUFFER");
+            uart_flush(UART_NUM_1);
+            flush_buffer = false;
+        }
         int ret = uart_read_bytes(UART_NUM_1, &buf, 1, portMAX_DELAY);
         if (ret > 0)
         {
@@ -47,6 +56,10 @@ void uart_task_tx(void *pvParameters)
     char out[] = {global_tty->receive_ascii_character()};
     if (out[0] != 0)
     {
+        if (out[0] == ASCII_ETX)
+        {
+            flush_buffer = true;
+        }
         uart_write_bytes(UART_NUM_1, &out, 1);
     }
     vTaskDelete(nullptr);
