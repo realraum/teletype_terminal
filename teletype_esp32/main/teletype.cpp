@@ -28,6 +28,7 @@ Teletype::Teletype()
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
     set_letter();
     vTaskDelay(DELAY_BIT*5 / portTICK_PERIOD_MS);
+
     // initialize with CR + LF
     print_ascii_character('\r');
     print_ascii_character('\n');
@@ -235,29 +236,40 @@ char Teletype::convert_baudot_char_to_ascii(uint8_t bits)
 
     char ret{0};
     // TODO: Remove this hack if we ever loopback locally
-    if (bits == 0b11111)
-        kb_mode = MODE_LETTER;
-    else if (bits == 0b11011)
-        kb_mode = MODE_NUMBER;
-    else
+    switch (bits)
     {
+    case SWITCH_LETTER:
+        kb_mode = MODE_LETTER;
+        break;
+    case SWITCH_NUMBER:
+        kb_mode = MODE_NUMBER;
+        break;
+    default:
         for (int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++) // found is unused
         {
             if (baudot_alphabet[i].bitcode == bits)
             {
-                switch(kb_mode)
+                switch (kb_mode)
                 {
                 case MODE_LETTER:
                     ret = baudot_alphabet[i].mode_letter;
+                    found = true;
                     break;
                 case MODE_NUMBER:
                     ret = baudot_alphabet[i].mode_number;
+                    found = true;
                     break;
                 default:
                     ESP_LOGI(TAG, "ERROR: state unknown, returning 0"); 
                 }
             }
         }
+        break;
+    }
+
+    if (ret == ASCII_ETX)
+    {
+        ESP_LOGI(TAG, "CTRL + C pressed");
     }
     return ret;
 }

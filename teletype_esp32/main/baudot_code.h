@@ -6,9 +6,15 @@
 
 #define NUMBER_OF_BITS 5
 #define NUMBER_OF_BAUDOT_CHARS 30
-#define UNDEFINED_CHAR '\xff'
+
+// Special pattens (non printeable)
 #define SWITCH_LETTER 0b11111
 #define SWITCH_NUMBER 0b11011
+
+// Special characters
+#define UNDEFINED_CHAR '\xff'
+#define ASCII_ETX '\x03' // CTRL + C
+#define ASCII_BEL '\x07' // Bell
 
 typedef enum {
     NO_INCREMENT_CHAR_COUNT,
@@ -29,13 +35,13 @@ static character baudot_alphabet[] =
     { 0b00011, 'A', '-', INCREMENT_CHAR_COUNT },
     { 0b11001, 'B', '?', INCREMENT_CHAR_COUNT },
     { 0b01110, 'C', ':', INCREMENT_CHAR_COUNT },
-    { 0b01001, 'D', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT }, // DO NOT PRINT THIS CHARACTER IN NUMBER MODE (triggers identification)
+    { 0b01001, 'D', ASCII_ETX, INCREMENT_CHAR_COUNT }, // DO NOT PRINT THIS CHARACTER IN NUMBER MODE (triggers identification)
     { 0b00001, 'E', '3', INCREMENT_CHAR_COUNT },
-    { 0b01101, 'F', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT },
-    { 0b11010, 'G', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT },
-    { 0b10100, 'H', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT },
+    { 0b01101, 'F', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT }, // Can't send this char in number mode on the teletype (square)
+    { 0b11010, 'G', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT }, // Can't send this char in number mode on the teletype (square horizontal line)
+    { 0b10100, 'H', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT }, // Can't send this char in number mode on the teletype (square diagonal line)
     { 0b00110, 'I', '8', INCREMENT_CHAR_COUNT },
-    { 0b01011, 'J', 0x07, INCREMENT_CHAR_COUNT }, // 0x07 = BELL, POSIX: '\a'
+    { 0b01011, 'J', ASCII_BEL, INCREMENT_CHAR_COUNT }, // 0x07 = BELL, POSIX: '\a'
     { 0b01111, 'K', '(', INCREMENT_CHAR_COUNT },
     { 0b10010, 'L', ')', INCREMENT_CHAR_COUNT },
     { 0b11100, 'M', '.', INCREMENT_CHAR_COUNT },
