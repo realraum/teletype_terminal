@@ -121,7 +121,8 @@ void Teletype::print_bd_character(print_baudot_char_t bd_char)
         characters_on_paper++;
         if (characters_on_paper > TTY_MAX_CHARS_PAPER)
         {
-            ESP_LOGE(TAG, "ERROR: maximum characters on paper exceeded");
+            ESP_LOGE(TAG, "ERROR: maximum characters on paper exceeded, printing newline");
+            this->print_string("\n\r");
         }
             break;
         case RESET_CHAR_COUNT:
