@@ -25,7 +25,6 @@ Teletype* global_tty;
 
 [[noreturn]] void uart_task_rx(void *pvParameters)
 {
-    auto tty = std::unique_ptr<Teletype>{static_cast<Teletype*>(pvParameters)};
     ESP_LOGI(TAG, "Hello from the UART RX Task");
     char buf[1];
     while (true)
@@ -34,44 +33,32 @@ Teletype* global_tty;
         if (ret > 0)
         {
             //putc(buf[0], stdout);
-            print_baudot_char_t bd_char = tty->convert_ascii_character_to_baudot(buf[0]);
-            tty->print_character(bd_char);
+            print_baudot_char_t bd_char = global_tty->convert_ascii_character_to_baudot(buf[0]);
+            global_tty->print_character(bd_char);
             if(buf[0] == '\n')
-                tty->print_character(tty->convert_ascii_character_to_baudot('\r'));
+                global_tty->print_character(global_tty->convert_ascii_character_to_baudot('\r'));
         }
     }
 }
 
 void uart_task_tx(void *pvParameters)
 {
-    auto tty = std::unique_ptr<Teletype>{static_cast<Teletype*>(pvParameters)};
     ESP_LOGI(TAG, "Hello from the UART TX Task");
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10)); // Wait till we are in the middle of Startbit
-    if (gpio_get_level(TTY_TX_PIN) == 1)
+
+    uint8_t bits = global_tty->rx_bits();
+
+    char out[] = {static_cast<char>(tolower(global_tty->convert_baudot_char_to_ascii(bits)))};
+    if (out[0] != 0)
     {
-        uint8_t result = 0;
-        for(int i = 0; i<5; i++)
-        {
-            xTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
-            result += ((1-gpio_get_level(TTY_TX_PIN)) << i);
-        }
-        xTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(30));
-        char out[] = {(char)tolower(tty->convert_baudot_char_to_ascii(result))};
-        if(out[0] != 0)
-            uart_write_bytes(UART_NUM_1, &out, 1);
+        uart_write_bytes(UART_NUM_1, &out, 1);
     }
-    else
-        ESP_LOGW(TAG, "ERROR! Start bit not 0! False trigger?");
-    gpio_intr_enable(TTY_TX_PIN);
     vTaskDelete(nullptr);
 }
 
 void IRAM_ATTR data_isr_handler(void* arg)
 {
     gpio_intr_disable(TTY_TX_PIN);
-    auto *tty = static_cast<Teletype*>(arg);
-    xTaskCreate(uart_task_tx, "UART Task TX", 4096, tty, 1, nullptr);
+    xTaskCreate(uart_task_tx, "UART Task TX", 4096, nullptr, 1, nullptr);
 }
 
 extern "C" [[noreturn]] void app_main(void)
@@ -102,10 +89,10 @@ extern "C" [[noreturn]] void app_main(void)
     gpio_config(&io_conf);
     gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1);
     global_tty = new Teletype();
-    gpio_isr_handler_add(TTY_TX_PIN, data_isr_handler, global_tty);
+    gpio_isr_handler_add(TTY_TX_PIN, data_isr_handler, nullptr);
 
     // --- Start UART task ---
-    xTaskCreate(uart_task_rx, "UART Task RX", 4096, global_tty, 1, nullptr);
+    xTaskCreate(uart_task_rx, "UART Task RX", 4096, nullptr, 1, nullptr);
 
     // std::string my_string = "the quick brown fox jumps over the lazy dog 1234567890\n-?:().,\'=/+\a\n";
 

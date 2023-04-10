@@ -39,6 +39,7 @@ public:
 
     void print_string(std::string str);
 
+    static uint8_t rx_bits();
     static void tx_bits(uint8_t bits);
     static print_baudot_char_t convert_ascii_character_to_baudot(char c);
 

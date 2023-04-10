@@ -19,7 +19,7 @@ constexpr const char TAG[] = "TTY";
 
 Teletype::Teletype()
 {
-    esp_log_level_set(TAG, ESP_LOG_WARN);
+    //esp_log_level_set(TAG, ESP_LOG_WARN);
     gpio_set_direction(TTY_RX_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(TTY_RX_PIN, 1);
 
@@ -75,6 +75,28 @@ void Teletype::tx_bits(uint8_t bits)
     // Stopbit
     gpio_set_level(TTY_RX_PIN, 1);
     usleep(DELAY_STOPBIT * 1000);
+}
+
+uint8_t Teletype::rx_bits()
+{
+    uint8_t result{0};
+    ESP_LOGI(TAG, "Hello from the RX Bits");
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    xTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(10)); // Wait till we are in the middle of Startbit
+    if (gpio_get_level(TTY_TX_PIN) == 1)
+    {
+        for (int i = 0; i<5; i++)
+        {
+            xTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(20));
+            result += ((1-gpio_get_level(TTY_TX_PIN)) << i);
+        }
+        xTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(30));
+    }
+    else
+        ESP_LOGW(TAG, "ERROR! Start bit not 0! False trigger?");
+    gpio_intr_enable(TTY_TX_PIN);
+
+    return result;
 }
 
 void Teletype::print_character(print_baudot_char_t bd_char)
