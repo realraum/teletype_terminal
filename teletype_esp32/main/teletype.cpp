@@ -115,18 +115,19 @@ void Teletype::print_bd_character(print_baudot_char_t bd_char)
         set_mode(bd_char.mode);
     }
     tx_bits(bd_char.bitcode);
-    switch (bd_char.cc_action == INCREMENT_CHAR_COUNT)
+    switch (bd_char.cc_action)
     {
         case INCREMENT_CHAR_COUNT:
-        characters_on_paper++;
-        if (characters_on_paper > TTY_MAX_CHARS_PAPER)
-        {
-            ESP_LOGE(TAG, "ERROR: maximum characters on paper exceeded, printing newline");
-            this->print_string("\n\r");
-        }
+            characters_on_paper++;
+            if (characters_on_paper > TTY_MAX_CHARS_PAPER)
+            {
+                ESP_LOGE(TAG, "ERROR: maximum characters on paper exceeded, printing newline");
+                this->print_string("\r\n");
+                characters_on_paper = 0;
+            }
             break;
         case RESET_CHAR_COUNT:
-        characters_on_paper = 0;
+            characters_on_paper = 0;
             break;
         default:
             break;
