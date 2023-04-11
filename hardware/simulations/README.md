@@ -14,10 +14,12 @@ As the magnet is required to engaged and disengaged quickly we need a time const
 To obtain a suitable tau while also driving enough current we chose a 1 kOhm Resistor that can handle 5W.  
 Finally a freewheeling diode (most any kind is suitable) protects our switching element.
 
-![](doubler.png)
+![](doubler.png)  
+
 Voltage doubler circuit
 
-![](doubler_graphs.png)
+![](doubler_graphs.png)  
+
 Simulated values for supply voltage (ripple) and current drawn by the receiving magnet.
 
 ## Receiver
@@ -26,7 +28,8 @@ For receiving bits from the teletype keyboard we need to detect the state of the
 
 Since the transmit circuit of the teletype also contains several solenoids in the paper tape reader, which we also wanted to use, the required current would be too much for the opto-coupler to handle.  
 
-![](receiver.png)
+![](receiver.png)  
+
 Receiver isolation circuit
 
 ![](receiver_graph.png)
