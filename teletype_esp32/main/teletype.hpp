@@ -15,7 +15,7 @@
 constexpr const int TTY_BAUDRATE = 50;
 constexpr const int DELAY_BIT = (1000 / TTY_BAUDRATE);
 constexpr const int DELAY_STOPBIT = (DELAY_BIT * 1.5);
-constexpr const int TTY_MAX_CHARS_PAPER = 68; // TODO: check this on the machine
+constexpr const int TTY_MAX_CHARS_PAPER = 68;
 // Hardware connections
 constexpr const auto TTY_RX_PIN{gpio_num_t::GPIO_NUM_22};
 constexpr const auto TTY_TX_PIN{gpio_num_t::GPIO_NUM_23};
