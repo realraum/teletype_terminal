@@ -17,8 +17,16 @@ namespace {
 constexpr const char TAG[] = "TTY";
 } // namespace
 
-Teletype::Teletype()
+Teletype::Teletype(uint8_t baudrate, gpio_num_t rx_pin, gpio_num_t tx_pin, uint8_t max_chars)
 {
+    // initialize teletype values (baudrate etc)
+    TTY_BAUDRATE = baudrate;
+    DELAY_BIT = (1000 / TTY_BAUDRATE);
+    DELAY_STOPBIT = DELAY_BIT * 1.5;
+    TTY_MAX_CHARS_PAPER = max_chars;
+    TTY_RX_PIN = rx_pin;
+    TTY_TX_PIN = tx_pin;
+
     //esp_log_level_set(TAG, ESP_LOG_WARN);
     gpio_set_direction(TTY_RX_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(TTY_RX_PIN, 1);
@@ -308,4 +316,24 @@ void Teletype::print_all_characters()
         print_bd_character(bd_char);
         vTaskDelay(DELAY_STOPBIT / portTICK_PERIOD_MS);
     }
+}
+
+uint8_t Teletype::get_TTY_BAUDRATE()
+{
+    return TTY_BAUDRATE;
+}
+
+uint8_t Teletype::get_TTY_MAX_CHARS_PAPER()
+{
+    return TTY_MAX_CHARS_PAPER;
+}
+
+gpio_num_t Teletype::get_TTY_RX_PIN()
+{
+    return TTY_RX_PIN;
+}
+
+gpio_num_t Teletype::get_TTY_TX_PIN()
+{
+    return TTY_TX_PIN;
 }

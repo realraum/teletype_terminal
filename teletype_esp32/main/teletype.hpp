@@ -11,16 +11,6 @@
 // local includes
 #include "baudot_code.h"
 
-// Teletype proteries (timing etc.)
-constexpr const int TTY_BAUDRATE = 50;
-constexpr const int DELAY_BIT = (1000 / TTY_BAUDRATE);
-constexpr const int DELAY_STOPBIT = (DELAY_BIT * 1.5);
-constexpr const int TTY_MAX_CHARS_PAPER = 68;
-// Hardware connections
-constexpr const auto TTY_RX_PIN{gpio_num_t::GPIO_NUM_22};
-constexpr const auto TTY_TX_PIN{gpio_num_t::GPIO_NUM_23};
-
-
 typedef enum {
     MODE_UNKNOWN,
     MODE_LETTER,
@@ -41,24 +31,44 @@ typedef struct
 class Teletype
 {
 public:
-    Teletype();
+    Teletype(uint8_t baudrate, gpio_num_t rx_pin, gpio_num_t tx_pin, uint8_t max_chars);
 
+    // Teletype printing functions
     void print_string(std::string str);
     void print_ascii_character(char c);
     void print_all_characters(); // for later use when we want to test the alphabet (print everything)
 
+    // Teletype receiving functions (keyboard)
     char receive_ascii_character();
-
-    static print_baudot_char_t convert_ascii_character_to_baudot(char c);
+    
+    // Conversions
+    print_baudot_char_t convert_ascii_character_to_baudot(char c);
     char convert_baudot_char_to_ascii(uint8_t bits);
 
+    // getter + setter
+    uint8_t get_TTY_BAUDRATE();
+    uint8_t get_TTY_MAX_CHARS_PAPER();
+    gpio_num_t get_TTY_RX_PIN();
+    gpio_num_t get_TTY_TX_PIN();
+
 private:
+    // Teletype properties (timing etc.)
+    uint8_t TTY_BAUDRATE{};
+    uint16_t DELAY_BIT{};
+    uint16_t DELAY_STOPBIT{};
+    uint8_t TTY_MAX_CHARS_PAPER{};
+
+    // Hardware connections
+    gpio_num_t TTY_RX_PIN{};
+    gpio_num_t TTY_TX_PIN{};
+
+    // State variables
     tty_mode_t kb_mode{}; // keyboard mode
     tty_mode_t pr_mode{}; // printer mode
     uint8_t characters_on_paper{};
 
-    static uint8_t rx_bits();
-    static void tx_bits(uint8_t bits);
+    uint8_t rx_bits();
+    void tx_bits(uint8_t bits);
 
     void set_number();
     void set_letter();
