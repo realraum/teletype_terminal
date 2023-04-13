@@ -3,6 +3,7 @@
 // system includes
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -25,6 +26,7 @@ Teletype* global_tty;
 
 // TODO: only for testing remove later
 bool flush_buffer;
+std::mutex uart_buffer_mutex;
 
 [[noreturn]] void uart_task_rx(void *pvParameters)
 {
@@ -32,11 +34,14 @@ bool flush_buffer;
     char buf[1];
     while (true)
     {
-        if (flush_buffer)
         {
-            ESP_LOGW(TAG, "FLUSHING RX BUFFER");
-            uart_flush(UART_NUM_1);
-            flush_buffer = false;
+            std::lock_guard<std::mutex> lck(uart_buffer_mutex);
+            if (flush_buffer)
+            {
+                ESP_LOGW(TAG, "FLUSHING RX BUFFER");
+                uart_flush(UART_NUM_1);
+                flush_buffer = false;
+            }
         }
         int ret = uart_read_bytes(UART_NUM_1, &buf, 1, portMAX_DELAY);
         if (ret > 0)
@@ -58,6 +63,7 @@ void uart_task_tx(void *pvParameters)
     {
         if (out[0] == ASCII_ETX)
         {
+            std::lock_guard<std::mutex> lck(uart_buffer_mutex);
             flush_buffer = true;
         }
         uart_write_bytes(UART_NUM_1, &out, 1);

@@ -187,6 +187,12 @@ print_baudot_char_t Teletype::convert_ascii_character_to_baudot(char c)
 
     ESP_LOGI(TAG, "CHAR = '%c'", c);
 
+    if (c == ASCII_ETX)
+    {
+        ESP_LOGE(TAG, "Char was ctrl + c: not printing this one to paper");
+        found = true;
+    }
+
     for (int i = 0; i < NUMBER_OF_BAUDOT_CHARS && !found; i++)
     {
         if (baudot_alphabet[i].mode_letter == c)
@@ -221,7 +227,7 @@ print_baudot_char_t Teletype::convert_ascii_character_to_baudot(char c)
 
     if (!found)
     {
-        ESP_LOGW(TAG, "ERROR: letter not found in alphabet, printing space");
+        ESP_LOGW(TAG, "letter not found in alphabet, printing nothing (0x00)");
         // bd_char = this->convert_ascii_character_to_baudot(' '); // TODO: avoid unneccesary mode change when printing space
         bd_char.mode = MODE_BOTH_POSSIBLE;
     }
