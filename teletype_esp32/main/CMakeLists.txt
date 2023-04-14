@@ -1,6 +1,7 @@
 idf_component_register(
     SRCS
         main.cpp
+        mode_manager.cpp
         teletype.cpp
         serial_handler.cpp
     INCLUDE_DIRS

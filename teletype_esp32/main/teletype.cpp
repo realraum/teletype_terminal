@@ -74,6 +74,8 @@ void Teletype::tx_bits(uint8_t bits)
     ESP_LOGI(TAG, "pattern: %x\n", bits);
     bool tx_bit{false};
 
+    // TODO: need to disable interrupts while writing a bit
+
     // startbit
     gpio_set_level(TTY_RX_PIN, 0);
     usleep(DELAY_BIT * 1000);
@@ -107,7 +109,6 @@ uint8_t Teletype::rx_bits()
     }
     else
         ESP_LOGW(TAG, "ERROR! Start bit not 0! False trigger?");
-    gpio_intr_enable(TTY_TX_PIN);
 
     return result;
 }

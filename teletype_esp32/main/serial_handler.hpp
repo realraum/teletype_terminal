@@ -22,11 +22,17 @@ public:
 
     static void IRAM_ATTR data_isr_handler(void* arg);
 
+    static void local_loop_enable();
+    static void local_loop_disable();
+    static bool get_local_loopback_enabled();
+
 private:
     static bool flush_buffer;
     static std::mutex uart_buffer_mutex;
+    static std::mutex loopbcak_mutex;
     static Teletype* tty;
     
+    static bool local_loopback_enabled;
         
 };
 

@@ -1,3 +1,6 @@
+// system includes
+#include <mutex>
+
 
 // esp-idf includes
 #include <esp_log.h>
@@ -12,15 +15,18 @@ constexpr const char TAG[] = "SERIAL";
 
 
 // static members
-bool SerialHandler::flush_buffer;
-std::mutex SerialHandler::uart_buffer_mutex;
-Teletype* SerialHandler::tty;
+bool SerialHandler::flush_buffer{};
+std::mutex SerialHandler::uart_buffer_mutex{};
+std::mutex SerialHandler::loopbcak_mutex{};
+Teletype* SerialHandler::tty{};
+bool SerialHandler::local_loopback_enabled{false};
 
 SerialHandler::SerialHandler(Teletype* tty)
 {
     if (tty != nullptr)
     {
         this->tty = tty;
+        local_loopback_enabled = false;
 
         // --- UART 2 (stty) config ---
         const uart_config_t uart_config = {
@@ -61,7 +67,7 @@ SerialHandler::SerialHandler(Teletype* tty)
         {
             //putc(buf[0], stdout);
             tty->print_ascii_character(buf[0]);
-            if(buf[0] == '\n')
+            if(buf[0] == '\n') // TODO: decide if we can remove this, we don't want to meddle with uart rx
                 tty->print_ascii_character('\r');
         }
     }
@@ -72,14 +78,22 @@ void SerialHandler::uart_task_tx(void *pvParameters)
     ESP_LOGI(TAG, "Hello from the UART TX Task");
 
     char out[] = {tty->receive_ascii_character()};
+    gpio_intr_enable(tty->get_TTY_TX_PIN());
     if (out[0] != 0)
     {
+        std::lock_guard<std::mutex> lck(loopbcak_mutex);
         if (out[0] == ASCII_ETX)
         {
+            // double use "Wer da" for flushing rx buffer
             std::lock_guard<std::mutex> lck(uart_buffer_mutex);
             flush_buffer = true;
         }
-        uart_write_bytes(UART_NUM_1, &out, 1);
+        else if (local_loopback_enabled)
+        {
+            // if local loopback is enabled print the character to the paper
+            tty->print_ascii_character(out[0]); //TODO: local loopback is broken. Fix: directly loop back bits or fix timing / buffer?
+        }
+        if (!local_loopback_enabled) uart_write_bytes(UART_NUM_1, &out, 1);
     }
     vTaskDelete(nullptr);
 }
@@ -88,4 +102,21 @@ void IRAM_ATTR SerialHandler::data_isr_handler(void* arg)
 {
     gpio_intr_disable(tty->get_TTY_TX_PIN());
     xTaskCreate(uart_task_tx, "UART Task TX", 4096, nullptr, 1, nullptr);
+}
+
+void SerialHandler::local_loop_enable()
+{
+    std::lock_guard<std::mutex> lck(loopbcak_mutex);
+    local_loopback_enabled = true;
+}
+
+void SerialHandler::local_loop_disable()
+{
+    std::lock_guard<std::mutex> lck(loopbcak_mutex); 
+    local_loopback_enabled = false;
+}
+
+bool SerialHandler::get_local_loopback_enabled()
+{
+    return local_loopback_enabled;
 }

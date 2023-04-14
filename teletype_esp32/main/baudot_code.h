@@ -35,7 +35,7 @@ static character baudot_alphabet[] =
     { 0b00011, 'A', '-', INCREMENT_CHAR_COUNT },
     { 0b11001, 'B', '?', INCREMENT_CHAR_COUNT },
     { 0b01110, 'C', ':', INCREMENT_CHAR_COUNT },
-    { 0b01001, 'D', ASCII_ETX, INCREMENT_CHAR_COUNT }, // DO NOT PRINT THIS CHARACTER IN NUMBER MODE (triggers identification)
+    { 0b01001, 'D', ASCII_ETX, INCREMENT_CHAR_COUNT }, // DO NOT PRINT THIS CHARACTER IN NUMBER MODE (triggers identification "Wer da?") 
     { 0b00001, 'E', '3', INCREMENT_CHAR_COUNT },
     { 0b01101, 'F', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT }, // Can't send this char in number mode on the teletype (square)
     { 0b11010, 'G', UNDEFINED_CHAR, INCREMENT_CHAR_COUNT }, // Can't send this char in number mode on the teletype (square horizontal line)
